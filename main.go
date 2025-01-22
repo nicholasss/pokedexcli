@@ -4,10 +4,10 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"strings"
+
+	pokeapi "github.com/nicholasss/pokedexcli/internal/pokeapi"
 )
 
 type cliCommand struct {
@@ -18,20 +18,6 @@ type cliCommand struct {
 
 type config struct {
 	mapPageNum int
-}
-
-// location area
-// field names need to be public with upper case for json package
-//
-// https://pokeapi.co/api/v2/location-area/
-type locationList struct {
-	Count int `json:"count"`
-	// Next     string `json:"next"`
-	// Previous string `json:"previous"`
-	Results []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
 }
 
 // initialized in func init()
@@ -86,35 +72,6 @@ func commandHelp(cfg *config) error {
 	return nil
 }
 
-func findListOffset(countPerPage int, pageNum int) string {
-	baseQuery := "?offset="
-
-	var offset int
-	if pageNum == 1 {
-		offset = 0
-	} else {
-		offset = (pageNum - 1) * countPerPage
-	}
-
-	// fmt.Printf("pageCount:%d, pageNum:%d --> offset:%d\n", countPerPage, pageNum, offset)
-	return fmt.Sprintf(baseQuery+"%d", offset)
-}
-
-func getBodyFromURL(URL string) ([]byte, error) {
-	resp, err := http.Get(URL)
-	if err != nil {
-		return []byte{}, fmt.Errorf("unable to perform GET with address '%s': %w", URL, err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return []byte{}, fmt.Errorf("unable to ReadAll from response body: %w", err)
-	}
-
-	return body, nil
-}
-
 func commandMap(cfg *config) error {
 	// increment page num
 	cfg.mapPageNum++
@@ -125,15 +82,15 @@ func commandMap(cfg *config) error {
 	countPerPage := 20
 
 	baseURL := "https://pokeapi.co/api/v2/location-area"
-	offsetQuery := findListOffset(countPerPage, cfg.mapPageNum)
+	offsetQuery := pokeapi.FindListOffset(countPerPage, cfg.mapPageNum)
 	fullURL := baseURL + offsetQuery
 
-	body, err := getBodyFromURL(fullURL)
+	body, err := pokeapi.GetBodyFromURL(fullURL)
 	if err != nil {
 		return fmt.Errorf("unable to get body: %w", err)
 	}
 
-	var locationList locationList
+	var locationList pokeapi.LocationList
 	if err := json.Unmarshal(body, &locationList); err != nil {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
@@ -159,15 +116,15 @@ func commandMapB(cfg *config) error {
 	countPerPage := 20
 
 	baseURL := "https://pokeapi.co/api/v2/location-area"
-	offsetQuery := findListOffset(countPerPage, cfg.mapPageNum)
+	offsetQuery := pokeapi.FindListOffset(countPerPage, cfg.mapPageNum)
 	fullURL := baseURL + offsetQuery
 
-	body, err := getBodyFromURL(fullURL)
+	body, err := pokeapi.GetBodyFromURL(fullURL)
 	if err != nil {
 		return fmt.Errorf("unable to get body: %w", err)
 	}
 
-	var locationList locationList
+	var locationList pokeapi.LocationList
 	if err := json.Unmarshal(body, &locationList); err != nil {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
