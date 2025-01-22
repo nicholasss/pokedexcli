@@ -100,24 +100,37 @@ func findListOffset(countPerPage int, pageNum int) string {
 	return fmt.Sprintf(baseQuery+"%d", offset)
 }
 
+func getBodyFromURL(URL string) ([]byte, error) {
+	resp, err := http.Get(URL)
+	if err != nil {
+		return []byte{}, fmt.Errorf("unable to perform GET with address '%s': %w", URL, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, fmt.Errorf("unable to ReadAll from response body: %w", err)
+	}
+
+	return body, nil
+}
+
 func commandMap(cfg *config) error {
+	// increment page num
+	cfg.mapPageNum++
+
+	// fmt.Printf("page #%d\n", cfg.mapPageNum)
+
+	// locally used for findListOffset()
 	countPerPage := 20
 
 	baseURL := "https://pokeapi.co/api/v2/location-area"
 	offsetQuery := findListOffset(countPerPage, cfg.mapPageNum)
 	fullURL := baseURL + offsetQuery
 
-	fmt.Println(fullURL)
-
-	resp, err := http.Get(fullURL)
+	body, err := getBodyFromURL(fullURL)
 	if err != nil {
-		return fmt.Errorf("unable to perform GET with address '%s': %w", fullURL, err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("unable to ReadAll from response body: %w", err)
+		return fmt.Errorf("unable to get body: %w", err)
 	}
 
 	var locationList locationList
@@ -125,32 +138,44 @@ func commandMap(cfg *config) error {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
 
-	fmt.Printf("%+v\n", locationList)
-
-	// end of func cleanup
-	cfg.mapPageNum++
+	for _, loc := range locationList.Results {
+		fmt.Println(loc.Name)
+	}
 
 	return nil
 }
 
 func commandMapB(cfg *config) error {
-	// goes back a page using the commandMap func
-	// ensure it doesnt go negative
-	if cfg.mapPageNum <= 0 {
-		cfg.mapPageNum = 0
+	// ensure page num doesnt go negative
+	if cfg.mapPageNum <= 1 {
+		fmt.Println("You are on the first page.")
+		return nil
 	} else {
-		cfg.mapPageNum--
+		cfg.mapPageNum -= 1
+	}
+	// fmt.Printf("page #%d\n", cfg.mapPageNum)
+
+	// locally used for findListOffset()
+	countPerPage := 20
+
+	baseURL := "https://pokeapi.co/api/v2/location-area"
+	offsetQuery := findListOffset(countPerPage, cfg.mapPageNum)
+	fullURL := baseURL + offsetQuery
+
+	body, err := getBodyFromURL(fullURL)
+	if err != nil {
+		return fmt.Errorf("unable to get body: %w", err)
 	}
 
-	commandMapB(cfg)
-
-	// undo the increment within commandMapB
-	// ensure it doesnt go negative
-	if cfg.mapPageNum <= 0 {
-		cfg.mapPageNum = 0
-	} else {
-		cfg.mapPageNum--
+	var locationList locationList
+	if err := json.Unmarshal(body, &locationList); err != nil {
+		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
+
+	for _, loc := range locationList.Results {
+		fmt.Println(loc.Name)
+	}
+
 	return nil
 }
 
@@ -159,7 +184,7 @@ func main() {
 
 	// local variables struct
 	cfg := &config{
-		mapPageNum: 1,
+		mapPageNum: 0,
 	}
 
 	for {
@@ -183,6 +208,8 @@ func main() {
 		}
 
 		// pass in local variables struct
-		validCommand.callback(cfg)
+		if err := validCommand.callback(cfg); err != nil {
+			fmt.Println("Error in commands:", err)
+		}
 	}
 }
