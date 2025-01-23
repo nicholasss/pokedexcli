@@ -15,7 +15,7 @@ import (
 type cliCommand struct {
 	name        string
 	description string
-	callback    func(*config) error
+	callback    func(*config, string) error
 }
 
 type config struct {
@@ -65,19 +65,19 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func commandExit(cfg *config) error {
+func commandExit(cfg *config, optional string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
 
 	return nil
 }
 
-func commandExplore(cfg *config) error {
+func commandExplore(cfg *config, name string) error {
 
 	return nil
 }
 
-func commandHelp(cfg *config) error {
+func commandHelp(cfg *config, optional string) error {
 	fmt.Printf("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, ci := range validCommands {
 		fmt.Printf("%s: %s\n", ci.name, ci.description)
@@ -109,7 +109,7 @@ func unmarshalLocationList(data []byte) (pokeapi.LocationList, error) {
 	return locationList, nil
 }
 
-func commandMap(cfg *config) error {
+func commandMap(cfg *config, optional string) error {
 	// checking URL
 	var URL string
 	if cfg.mapNURL == "null" {
@@ -146,7 +146,7 @@ func commandMap(cfg *config) error {
 	return nil
 }
 
-func commandMapB(cfg *config) error {
+func commandMapB(cfg *config, optional string) error {
 	// checking for URL
 	var URL string
 	if cfg.mapPURL == "null" {
@@ -208,6 +208,7 @@ func main() {
 
 		args := cleanInput(scanner.Text())
 		command := args[0]
+		optional := args[1]
 
 		validCommand, exists := validCommands[command]
 		if !exists {
@@ -215,8 +216,8 @@ func main() {
 			continue
 		}
 
-		// pass in local variables struct
-		if err := validCommand.callback(cfg); err != nil {
+		// pass in local variables struct, and optional argument
+		if err := validCommand.callback(cfg, optional); err != nil {
 			fmt.Println("Error in commands:", err)
 		}
 	}
