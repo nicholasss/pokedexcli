@@ -12,6 +12,9 @@ import (
 	pokecache "github.com/nicholasss/pokedexcli/internal/pokecache"
 )
 
+// =====
+// Types
+// =====
 type cliCommand struct {
 	name        string
 	description string
@@ -24,7 +27,9 @@ type config struct {
 	cache   *pokecache.Cache
 }
 
-// initialized in func init()
+// =====================
+// Initializing Commands
+// =====================
 var validCommands map[string]cliCommand
 
 func init() {
@@ -59,22 +64,13 @@ func init() {
 
 }
 
+// =================
+// Utility Functions
+// =================
 func cleanInput(text string) []string {
 	text = strings.ToLower(text)
 	words := strings.Fields(text)
 	return words
-}
-
-func commandExit(cfg *config, optional string) error {
-	fmt.Println("Closing the Pokedex... Goodbye!")
-	os.Exit(0)
-
-	return nil
-}
-
-func commandExplore(cfg *config, name string) error {
-
-	return nil
 }
 
 func commandHelp(cfg *config, optional string) error {
@@ -99,7 +95,21 @@ func requestThroughCache(URL string, cfg *config) ([]byte, error) {
 	return pokeapi.RequestGETBody(URL)
 }
 
-// lets see if this function gets any use
+// =================
+// Command Functions
+// =================
+func commandExit(cfg *config, optional string) error {
+	fmt.Println("Closing the Pokedex... Goodbye!")
+	os.Exit(0)
+
+	return nil
+}
+
+func commandExplore(cfg *config, name string) error {
+
+	return nil
+}
+
 func unmarshalLocationList(data []byte) (pokeapi.LocationList, error) {
 	var locationList pokeapi.LocationList
 	if err := json.Unmarshal(data, &locationList); err != nil {
@@ -184,9 +194,8 @@ func commandMapB(cfg *config, optional string) error {
 }
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
 
-	interval := (10 * time.Minute)
+	const interval = (10 * time.Minute)
 
 	// local variables struct
 	cfg := &config{
@@ -194,6 +203,8 @@ func main() {
 		mapPURL: "null",
 		cache:   pokecache.NewCache(interval),
 	}
+
+	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
 		fmt.Print("Pokedex > ") // prompt
