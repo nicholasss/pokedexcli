@@ -35,6 +35,11 @@ func init() {
 			description: "Exit the Pokedex",
 			callback:    commandExit,
 		},
+		"explore": {
+			name:        "explore",
+			description: "Lists Pokemon that live in the area",
+			callback:    commandExplore,
+		},
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
@@ -67,6 +72,11 @@ func commandExit(cfg *config) error {
 	return nil
 }
 
+func commandExplore(cfg *config) error {
+
+	return nil
+}
+
 func commandHelp(cfg *config) error {
 	fmt.Printf("Welcome to the Pokedex!\nUsage:\n\n")
 	for _, ci := range validCommands {
@@ -78,10 +88,14 @@ func commandHelp(cfg *config) error {
 
 func requestThroughCache(URL string, cfg *config) ([]byte, error) {
 	reqData, inCache := cfg.cache.Get(URL)
+	// fmt.Println(" %%% Looking at:", URL)
+
 	if inCache {
+		// fmt.Println(" %%% USED CACHED DATA")
 		return reqData, nil
 	}
 
+	// fmt.Println(" %%% REQUESTED NEW DATA")
 	return pokeapi.RequestGETBody(URL)
 }
 

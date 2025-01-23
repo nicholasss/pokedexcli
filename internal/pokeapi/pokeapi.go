@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-const LocationAreaURL = "https://pokeapi.co/api/v2/location-area"
+const LocationAreaURL = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
 
 // location area
 // field names need to be public with upper case for json package
