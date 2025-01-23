@@ -123,7 +123,7 @@ func commandMap(cfg *config, optional string) error {
 	// checking URL
 	var URL string
 	if cfg.mapNURL == "null" {
-		URL = pokeapi.LocationAreaURL
+		URL = pokeapi.LocationAreaListURL
 	} else {
 		URL = cfg.mapNURL
 	}
@@ -160,7 +160,7 @@ func commandMapB(cfg *config, optional string) error {
 	// checking for URL
 	var URL string
 	if cfg.mapPURL == "null" {
-		URL = pokeapi.LocationAreaURL
+		URL = pokeapi.LocationAreaListURL
 	} else {
 		URL = cfg.mapPURL
 	}
@@ -219,7 +219,13 @@ func main() {
 
 		args := cleanInput(scanner.Text())
 		command := args[0]
-		optional := args[1]
+
+		var optional string
+		if len(args) > 1 {
+			optional = args[1]
+		} else {
+			optional = ""
+		}
 
 		validCommand, exists := validCommands[command]
 		if !exists {

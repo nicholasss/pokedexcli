@@ -6,7 +6,9 @@ import (
 	"net/http"
 )
 
-const LocationAreaURL = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
+const LocationAreaURL = "https://pokeapi.co/api/v2/location-area"
+const LocationAreaListURL = LocationAreaURL + "?offset=0&limit=20"
+const LocationAreaInfoURL = LocationAreaURL
 
 // location area
 // field names need to be public with upper case for json package
@@ -20,6 +22,18 @@ type LocationList struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	} `json:"results"`
+}
+
+type LocationInfo struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	URL         string `json:"location.url"`
+	PokemonList []struct {
+		Pokemon struct {
+			Name string `json:"name"`
+			URL  string `json:"url"`
+		} `json:"pokemon"`
+	} `json:"pokemon_encounters"`
 }
 
 // provides the body of from a get request
