@@ -8,7 +8,7 @@ import (
 
 const LocationAreaURL = "https://pokeapi.co/api/v2/location-area"
 const LocationAreaListURL = LocationAreaURL + "?offset=0&limit=20"
-const LocationAreaInfoURL = LocationAreaURL
+const LocationAreaInfoURL = LocationAreaURL + "/" // is this needed? who knows
 
 // location area
 // field names need to be public with upper case for json package
