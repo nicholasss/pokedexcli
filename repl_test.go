@@ -53,6 +53,7 @@ func TestCleanInput(t *testing.T) {
 
 			if actualWord != expectedWord {
 				t.Errorf("actual word different from expected word")
+				return
 			}
 		}
 

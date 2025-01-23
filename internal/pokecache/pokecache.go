@@ -31,7 +31,7 @@ func NewCache(interval time.Duration) *Cache {
 		mux:     &sync.Mutex{},
 	}
 
-	// begins the read loop that deletes expired entires
+	// begins the read loop that deletes old entires
 	newCache.readLoop(interval)
 
 	return &newCache
@@ -86,7 +86,7 @@ func (c *Cache) readLoop(interval time.Duration) {
 
 			for name, entry := range c.entries {
 				age := time.Since(entry.createdAt)
-				expiAge := (time.Minute * 10) // 10min ttl
+				expiAge := interval // ttl equal to interval
 
 				if age > expiAge {
 					delete(c.entries, name)
