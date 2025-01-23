@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	pokeapi "github.com/nicholasss/pokedexcli/internal/pokeapi"
+	pokecache "github.com/nicholasss/pokedexcli/internal/pokecache"
 )
 
 type cliCommand struct {
@@ -19,6 +21,7 @@ type cliCommand struct {
 type config struct {
 	mapNURL string
 	mapPURL string
+	cache   *pokecache.Cache
 }
 
 // initialized in func init()
@@ -73,22 +76,45 @@ func commandHelp(cfg *config) error {
 	return nil
 }
 
-func commandMap(cfg *config) error {
-	// checking url
-	var url string
-	if cfg.mapNURL == "null" {
-		url = pokeapi.LocationAreaURL
-	} else {
-		url = cfg.mapNURL
+func requestThroughCache(URL string, cfg *config) ([]byte, error) {
+	reqData, inCache := cfg.cache.Get(URL)
+	if inCache {
+		return reqData, nil
 	}
 
-	body, err := pokeapi.RequestGETBody(url)
-	if err != nil {
-		return fmt.Errorf("unable to get body: %w", err)
-	}
+	return pokeapi.RequestGETBody(URL)
+}
 
+// lets see if this function gets any use
+func unmarshalLocationList(data []byte) (pokeapi.LocationList, error) {
 	var locationList pokeapi.LocationList
-	if err := json.Unmarshal(body, &locationList); err != nil {
+	if err := json.Unmarshal(data, &locationList); err != nil {
+		return pokeapi.LocationList{}, fmt.Errorf("unable to unmarshal json request: %w", err)
+	}
+
+	return locationList, nil
+}
+
+func commandMap(cfg *config) error {
+	// checking URL
+	var URL string
+	if cfg.mapNURL == "null" {
+		URL = pokeapi.LocationAreaURL
+	} else {
+		URL = cfg.mapNURL
+	}
+
+	// check the cache
+	body, err := requestThroughCache(URL, cfg)
+	if err != nil {
+		return fmt.Errorf("unable to request data: %w", err)
+	}
+
+	// add to cache
+	cfg.cache.Add(URL, body)
+
+	locationList, err := unmarshalLocationList(body)
+	if err != nil {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
 
@@ -107,21 +133,25 @@ func commandMap(cfg *config) error {
 }
 
 func commandMapB(cfg *config) error {
-	// checking for url
-	var url string
+	// checking for URL
+	var URL string
 	if cfg.mapPURL == "null" {
-		url = pokeapi.LocationAreaURL
+		URL = pokeapi.LocationAreaURL
 	} else {
-		url = cfg.mapPURL
+		URL = cfg.mapPURL
 	}
 
-	body, err := pokeapi.RequestGETBody(url)
+	// check the cache
+	body, err := requestThroughCache(URL, cfg)
 	if err != nil {
-		return fmt.Errorf("unable to get body: %w", err)
+		return fmt.Errorf("unable to request body: %w", err)
 	}
 
-	var locationList pokeapi.LocationList
-	if err := json.Unmarshal(body, &locationList); err != nil {
+	// add to cache
+	cfg.cache.Add(URL, body)
+
+	locationList, err := unmarshalLocationList(body)
+	if err != nil {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
 
@@ -142,10 +172,13 @@ func commandMapB(cfg *config) error {
 func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
+	interval := (10 * time.Minute)
+
 	// local variables struct
 	cfg := &config{
 		mapNURL: "null",
 		mapPURL: "null",
+		cache:   pokecache.NewCache(interval),
 	}
 
 	for {

@@ -1,3 +1,5 @@
+// pokecache is an internal package
+// It provides a caching mechanism for URLs with a cacheEntry of []byte
 package pokecache
 
 import (
@@ -5,26 +7,21 @@ import (
 	"time"
 )
 
-// Cache
-//
-// this is the exposed struct that will be accessed
+// A Cache allows for storing and retrieving cached data associated with specific URLs
 type Cache struct {
 	entries map[string]cacheEntry
 	mux     *sync.Mutex
 }
 
-// cacheEntry
-//
-// responsible for storing raw []byte
-// as well as a time that it was created at
+// This type is responsible for storing raw []byte,
+// as well as a time that it was created at.
 type cacheEntry struct {
 	createdAt time.Time
 	val       []byte
 }
 
-// initializes a new Cache
-//
-// creates new cache that is valid for the given duration
+// Initializes a new Cache.
+// Creates new cache that is valid for the given duration.
 func NewCache(interval time.Duration) *Cache {
 	newCache := Cache{
 		entries: make(map[string]cacheEntry),
@@ -37,9 +34,8 @@ func NewCache(interval time.Duration) *Cache {
 	return &newCache
 }
 
-// adds a new entry to the cache
-//
-// take a key and a val to add to the Cache map
+// Adds a new entry to the cache:
+// Takes a key and a val to add to the Cache entries.
 func (c *Cache) Add(name string, data []byte) {
 	newCacheEntry := cacheEntry{
 		createdAt: time.Now(),
@@ -51,10 +47,8 @@ func (c *Cache) Add(name string, data []byte) {
 	c.entries[name] = newCacheEntry
 }
 
-// gets an entry to the cache
-//
-// takes a key
-// returns a []byte and true if found or []byte{} and false if not
+// It takes a key
+// and returns []byte and bool, true if there is an entry, false if there is none.
 func (c *Cache) Get(name string) ([]byte, bool) {
 	c.mux.Lock()
 	defer c.mux.Unlock()
