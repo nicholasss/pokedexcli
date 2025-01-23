@@ -6,35 +6,24 @@ import (
 	"net/http"
 )
 
+const LocationAreaURL = "https://pokeapi.co/api/v2/location-area"
+
 // location area
 // field names need to be public with upper case for json package
 //
 // https://pokeapi.co/api/v2/location-area/
 type LocationList struct {
-	Count int `json:"count"`
-	// Next     string `json:"next"`
-	// Previous string `json:"previous"`
-	Results []struct {
+	Count    int     `json:"count"`
+	Next     *string `json:"next"`
+	Previous *string `json:"previous"`
+	Results  []struct {
 		Name string `json:"name"`
 		URL  string `json:"url"`
 	} `json:"results"`
 }
 
-func FindListOffset(countPerPage int, pageNum int) string {
-	baseQuery := "?offset="
-
-	var offset int
-	if pageNum == 1 {
-		offset = 0
-	} else {
-		offset = (pageNum - 1) * countPerPage
-	}
-
-	// fmt.Printf("pageCount:%d, pageNum:%d --> offset:%d\n", countPerPage, pageNum, offset)
-	return fmt.Sprintf(baseQuery+"%d", offset)
-}
-
-func GetBodyFromURL(URL string) ([]byte, error) {
+// provides the body of from a get request
+func RequestGETBody(URL string) ([]byte, error) {
 	resp, err := http.Get(URL)
 	if err != nil {
 		return []byte{}, fmt.Errorf("unable to perform GET with address '%s': %w", URL, err)

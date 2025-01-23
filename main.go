@@ -17,7 +17,8 @@ type cliCommand struct {
 }
 
 type config struct {
-	mapPageNum int
+	mapNURL string
+	mapPURL string
 }
 
 // initialized in func init()
@@ -73,19 +74,15 @@ func commandHelp(cfg *config) error {
 }
 
 func commandMap(cfg *config) error {
-	// increment page num
-	cfg.mapPageNum++
+	// checking url
+	var url string
+	if cfg.mapNURL == "null" {
+		url = pokeapi.LocationAreaURL
+	} else {
+		url = cfg.mapNURL
+	}
 
-	// fmt.Printf("page #%d\n", cfg.mapPageNum)
-
-	// locally used for findListOffset()
-	countPerPage := 20
-
-	baseURL := "https://pokeapi.co/api/v2/location-area"
-	offsetQuery := pokeapi.FindListOffset(countPerPage, cfg.mapPageNum)
-	fullURL := baseURL + offsetQuery
-
-	body, err := pokeapi.GetBodyFromURL(fullURL)
+	body, err := pokeapi.RequestGETBody(url)
 	if err != nil {
 		return fmt.Errorf("unable to get body: %w", err)
 	}
@@ -97,29 +94,28 @@ func commandMap(cfg *config) error {
 
 	for _, loc := range locationList.Results {
 		fmt.Println(loc.Name)
+	}
+
+	if locationList.Next != nil {
+		cfg.mapNURL = *locationList.Next
+	}
+	if locationList.Previous != nil {
+		cfg.mapPURL = *locationList.Previous
 	}
 
 	return nil
 }
 
 func commandMapB(cfg *config) error {
-	// ensure page num doesnt go negative
-	if cfg.mapPageNum <= 1 {
-		fmt.Println("You are on the first page.")
-		return nil
+	// checking for url
+	var url string
+	if cfg.mapPURL == "null" {
+		url = pokeapi.LocationAreaURL
 	} else {
-		cfg.mapPageNum -= 1
+		url = cfg.mapPURL
 	}
-	// fmt.Printf("page #%d\n", cfg.mapPageNum)
 
-	// locally used for findListOffset()
-	countPerPage := 20
-
-	baseURL := "https://pokeapi.co/api/v2/location-area"
-	offsetQuery := pokeapi.FindListOffset(countPerPage, cfg.mapPageNum)
-	fullURL := baseURL + offsetQuery
-
-	body, err := pokeapi.GetBodyFromURL(fullURL)
+	body, err := pokeapi.RequestGETBody(url)
 	if err != nil {
 		return fmt.Errorf("unable to get body: %w", err)
 	}
@@ -131,6 +127,13 @@ func commandMapB(cfg *config) error {
 
 	for _, loc := range locationList.Results {
 		fmt.Println(loc.Name)
+	}
+
+	if locationList.Next != nil {
+		cfg.mapNURL = *locationList.Next
+	}
+	if locationList.Previous != nil {
+		cfg.mapPURL = *locationList.Previous
 	}
 
 	return nil
@@ -141,7 +144,8 @@ func main() {
 
 	// local variables struct
 	cfg := &config{
-		mapPageNum: 0,
+		mapNURL: "null",
+		mapPURL: "null",
 	}
 
 	for {
