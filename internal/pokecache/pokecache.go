@@ -9,8 +9,8 @@ import (
 //
 // this is the exposed struct that will be accessed
 type Cache struct {
-	entires map[string]cacheEntry
-	mux     sync.Mutex
+	entries map[string]cacheEntry
+	mux     *sync.Mutex
 }
 
 // cacheEntry
@@ -26,15 +26,29 @@ type cacheEntry struct {
 //
 // creates new cache that is valid for the given duration
 func NewCache(interval time.Duration) *Cache {
+	newCache := Cache{
+		entries: make(map[string]cacheEntry),
+		mux:     &sync.Mutex{},
+	}
 
-	return &Cache{}
+	// begins the read loop that deletes expired entires
+	newCache.readLoop(interval)
+
+	return &newCache
 }
 
 // adds a new entry to the cache
 //
 // take a key and a val to add to the Cache map
 func (c *Cache) Add(name string, data []byte) {
+	newCacheEntry := cacheEntry{
+		createdAt: time.Now(),
+		val:       data,
+	}
 
+	c.mux.Lock()
+	defer c.mux.Unlock()
+	c.entries[name] = newCacheEntry
 }
 
 // gets an entry to the cache
@@ -42,8 +56,15 @@ func (c *Cache) Add(name string, data []byte) {
 // takes a key
 // returns a []byte and true if found or []byte{} and false if not
 func (c *Cache) Get(name string) ([]byte, bool) {
+	c.mux.Lock()
+	defer c.mux.Unlock()
 
-	return []byte{}, false
+	foundEntry, ok := c.entries[name]
+	if !ok {
+		return []byte{}, false
+	}
+
+	return foundEntry.val, true
 }
 
 // removes expired cache entries
@@ -53,5 +74,27 @@ func (c *Cache) Get(name string) ([]byte, bool) {
 // it should remove any entries that are expired
 // (older than the interval)
 func (c *Cache) readLoop(interval time.Duration) {
+	go func() {
+		// create ticker
+		ticker := time.NewTicker(interval)
 
+		for {
+			<-ticker.C
+
+			// locks after timed loop
+			c.mux.Lock()
+
+			for name, entry := range c.entries {
+				age := time.Since(entry.createdAt)
+				expiAge := (time.Minute * 10) // 10min ttl
+
+				if age > expiAge {
+					delete(c.entries, name)
+				}
+			}
+
+			// unlocks at end of timed loop
+			c.mux.Unlock()
+		}
+	}()
 }
