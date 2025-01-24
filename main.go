@@ -38,7 +38,7 @@ func init() {
 	validCommands = map[string]cliCommand{
 		"catch": {
 			name:        "catch",
-			description: "Attempts to catch a pokemon",
+			description: "Attempts to catch a given Pokemon",
 			callback:    commandCatch,
 		},
 		"exit": {
@@ -48,13 +48,18 @@ func init() {
 		},
 		"explore": {
 			name:        "explore",
-			description: "Lists Pokemon that live in the area",
+			description: "Lists Pokemon that live in a given area",
 			callback:    commandExplore,
 		},
 		"help": {
 			name:        "help",
 			description: "Displays a help message",
 			callback:    commandHelp,
+		},
+		"inspect": {
+			name:        "inspect",
+			description: "Provides info for a given Pokemon",
+			callback:    commandInspect,
 		},
 		"map": {
 			name:        "map",
@@ -160,6 +165,11 @@ func commandHelp(cfg *config, optional string) error {
 	for _, ci := range validCommands {
 		fmt.Printf("%s: %s\n", ci.name, ci.description)
 	}
+
+	return nil
+}
+
+func commandInspect(cfg *config, name string) error {
 
 	return nil
 }
