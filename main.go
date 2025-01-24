@@ -9,7 +9,7 @@ import (
 
 	pokeapi "github.com/nicholasss/pokedexcli/internal/pokeapi"
 	pokecache "github.com/nicholasss/pokedexcli/internal/pokecache"
-	"github.com/nicholasss/pokedexcli/internal/pokedex"
+	pokedex "github.com/nicholasss/pokedexcli/internal/pokedex"
 )
 
 // =====
