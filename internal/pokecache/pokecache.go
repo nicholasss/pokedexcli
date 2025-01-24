@@ -44,7 +44,16 @@ func (c *Cache) Add(name string, data []byte) {
 
 	c.mux.Lock()
 	defer c.mux.Unlock()
-	c.entries[name] = newCacheEntry
+
+	// Will not replace item in map if it exists already.
+	// Otherwise the data gotten from cache will just be used
+	// to write over the existing data in cache every time
+	// it is requested.
+	if _, alreadyInCache := c.entries[name]; alreadyInCache {
+		return
+	} else {
+		c.entries[name] = newCacheEntry
+	}
 }
 
 // It takes a key

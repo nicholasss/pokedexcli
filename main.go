@@ -106,8 +106,39 @@ func commandExit(cfg *config, optional string) error {
 }
 
 func commandExplore(cfg *config, name string) error {
+	// creating URL
+	URL := pokeapi.LocationAreaInfoURL + name + "/"
+
+	// requesting through cache
+	data, err := requestThroughCache(URL, cfg)
+	if err != nil {
+		return fmt.Errorf("unable to request through cache: %w", err)
+	}
+
+	// TODO: check to ensure that cache doesnt do more work if replacing with same data
+	// adding back to cache
+	cfg.cache.Add(URL, data)
+
+	locationInfo, err := unmarshalLocationInfo(data)
+	if err != nil {
+		return err
+	}
+
+	// print out list of pokemon here
+	for _, pokemon := range locationInfo.PokemonList {
+		fmt.Println(pokemon.Pokemon.Name)
+	}
 
 	return nil
+}
+
+func unmarshalLocationInfo(data []byte) (pokeapi.LocationInfo, error) {
+	var locationInfo pokeapi.LocationInfo
+	if err := json.Unmarshal(data, &locationInfo); err != nil {
+		return pokeapi.LocationInfo{}, fmt.Errorf("unable to unmarshal json request: %w", err)
+	}
+
+	return locationInfo, nil
 }
 
 func unmarshalLocationList(data []byte) (pokeapi.LocationList, error) {
