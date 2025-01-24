@@ -71,6 +71,11 @@ func init() {
 			description: "Lists previous map areas",
 			callback:    commandMapB,
 		},
+		"pokedex": {
+			name:        "pokedex",
+			description: "Lists all caught Pokemon",
+			callback:    commandPokedex,
+		},
 	}
 
 }
@@ -284,6 +289,14 @@ func commandMapB(cfg *config, optional string) error {
 	return nil
 }
 
+func commandPokedex(cfg *config, optional string) error {
+
+	return nil
+}
+
+// =============
+// Main Function
+// =============
 func main() {
 
 	const interval = (10 * time.Minute)
