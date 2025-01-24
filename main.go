@@ -61,6 +61,11 @@ func init() {
 			description: "Provides info for a given Pokemon",
 			callback:    commandInspect,
 		},
+		"load": {
+			name:        "load",
+			description: "Loads Pokedex from disk",
+			callback:    commandLoad,
+		},
 		"map": {
 			name:        "map",
 			description: "Lists map areas",
@@ -75,6 +80,11 @@ func init() {
 			name:        "pokedex",
 			description: "Lists all caught Pokemon",
 			callback:    commandPokedex,
+		},
+		"save": {
+			name:        "save",
+			description: "Saves Pokedex to disk",
+			callback:    commandSave,
 		},
 	}
 
@@ -215,6 +225,10 @@ func commandInspect(cfg *config, name string) error {
 	return nil
 }
 
+func commandLoad(cfg *config, optional string) error {
+	return nil
+}
+
 func commandMap(cfg *config, optional string) error {
 	// checking URL
 	var URL string
@@ -300,6 +314,11 @@ func commandPokedex(cfg *config, optional string) error {
 	for _, name := range pokemonList {
 		fmt.Printf("  -%s\n", name)
 	}
+
+	return nil
+}
+
+func commandSave(cfg *config, optional string) error {
 
 	return nil
 }
