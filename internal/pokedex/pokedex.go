@@ -59,8 +59,19 @@ func (p *Pokedex) Get(name string) (pokeapi.PokemonInfo, bool) {
 
 // returns a list of all Pokemon in the Pokemon entries
 func (p *Pokedex) GetAll() ([]string, bool) {
+	p.mux.Lock()
+	defer p.mux.Unlock()
 
-	return []string{}, false
+	if len(p.entries) <= 0 {
+		return []string{}, false
+	}
+
+	var names []string
+	for pokemon := range p.entries {
+		names = append(names, pokemon)
+	}
+
+	return names, true
 }
 
 // will perform an attempt to 'catch' a pokemon and

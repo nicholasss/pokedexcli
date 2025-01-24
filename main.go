@@ -290,7 +290,16 @@ func commandMapB(cfg *config, optional string) error {
 }
 
 func commandPokedex(cfg *config, optional string) error {
-	pokemonList, emptyList := cfg.pokedex.GetAlL()
+	pokemonList, namesInList := cfg.pokedex.GetAll()
+	if !namesInList {
+		fmt.Println("You have not caught any Pokemon yet!")
+		return nil
+	}
+
+	fmt.Println("Your Pokedex:")
+	for _, name := range pokemonList {
+		fmt.Printf("  -%s\n", name)
+	}
 
 	return nil
 }
@@ -313,7 +322,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Print("\nPokedex > ") // prompt
+		fmt.Print("Pokedex > ") // prompt
 
 		if ok := scanner.Scan(); !ok {
 			continue // no text provided
@@ -343,5 +352,8 @@ func main() {
 		if err := validCommand.callback(cfg, optional); err != nil {
 			fmt.Println("Error in commands:", err)
 		}
+
+		// adds a line between last command and the next prompt
+		fmt.Printf("\n")
 	}
 }
