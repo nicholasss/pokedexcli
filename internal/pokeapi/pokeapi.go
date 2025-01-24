@@ -10,6 +10,8 @@ const LocationAreaURL = "https://pokeapi.co/api/v2/location-area"
 const LocationAreaListURL = LocationAreaURL + "?offset=0&limit=20"
 const LocationAreaInfoURL = LocationAreaURL + "/" // is this needed? who knows
 
+const PokemonInfoURL = "https://pokeapi.co/api/v2/pokemon/"
+
 // location area
 // field names need to be public with upper case for json package
 //
@@ -34,6 +36,15 @@ type LocationInfo struct {
 			URL  string `json:"url"`
 		} `json:"pokemon"`
 	} `json:"pokemon_encounters"`
+}
+
+type PokemonInfo struct {
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
+	TypeList       []struct {
+		Type string `json:"name"`
+	} `json:"types"`
 }
 
 // provides the body of from a get request

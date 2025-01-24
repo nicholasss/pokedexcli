@@ -10,6 +10,7 @@ import (
 
 	pokeapi "github.com/nicholasss/pokedexcli/internal/pokeapi"
 	pokecache "github.com/nicholasss/pokedexcli/internal/pokecache"
+	"github.com/nicholasss/pokedexcli/internal/pokedex"
 )
 
 // =====
@@ -22,9 +23,10 @@ type cliCommand struct {
 }
 
 type config struct {
+	cache   *pokecache.Cache
 	mapNURL string
 	mapPURL string
-	cache   *pokecache.Cache
+	pokedex *pokedex.Pokedex
 }
 
 // =====================
@@ -35,6 +37,11 @@ var validCommands map[string]cliCommand
 func init() {
 
 	validCommands = map[string]cliCommand{
+		"catch": {
+			name:        "catch",
+			description: "Attempts to catch a pokemon",
+			callback:    commandCatch,
+		},
 		"exit": {
 			name:        "exit",
 			description: "Exit the Pokedex",
@@ -98,6 +105,33 @@ func requestThroughCache(URL string, cfg *config) ([]byte, error) {
 // =================
 // Command Functions
 // =================
+func commandCatch(cfg *config, name string) error {
+	URL := pokeapi.PokemonInfoURL + name + "/"
+
+	data, err := requestThroughCache(URL, cfg)
+	if err != nil {
+		return fmt.Errorf("unable to request through cache: %w", err)
+	}
+
+	cfg.cache.Add(URL, data)
+
+	pokemon, err := unmarshalPokemonInfo(data)
+	if err != nil {
+		return fmt.Errorf("unable to unmarshal pokemon info: %w", err)
+	}
+
+	caught := pokedex.AttemptCatch(pokemon)
+	if !caught {
+		return nil
+	}
+
+	// add to pokedex
+	cfg.pokedex.Add(name, pokemon)
+	// fmt.Printf(" **** added %s to pokedex!\n", name)
+
+	return nil
+}
+
 func commandExit(cfg *config, optional string) error {
 	fmt.Println("Closing the Pokedex... Goodbye!")
 	os.Exit(0)
@@ -130,6 +164,15 @@ func commandExplore(cfg *config, name string) error {
 	}
 
 	return nil
+}
+
+func unmarshalPokemonInfo(data []byte) (pokeapi.PokemonInfo, error) {
+	var pokemonInfo pokeapi.PokemonInfo
+	if err := json.Unmarshal(data, &pokemonInfo); err != nil {
+		return pokeapi.PokemonInfo{}, fmt.Errorf("unable to unmarshal json request: %w", err)
+	}
+
+	return pokemonInfo, nil
 }
 
 func unmarshalLocationInfo(data []byte) (pokeapi.LocationInfo, error) {
@@ -230,9 +273,10 @@ func main() {
 
 	// local variables struct
 	cfg := &config{
+		cache:   pokecache.NewCache(interval),
 		mapNURL: "null",
 		mapPURL: "null",
-		cache:   pokecache.NewCache(interval),
+		pokedex: pokedex.NewPokedex(),
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)

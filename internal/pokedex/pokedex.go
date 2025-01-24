@@ -1,0 +1,76 @@
+package pokedex
+
+import (
+	"fmt"
+	"math/rand"
+	"sync"
+	"time"
+
+	pokeapi "github.com/nicholasss/pokedexcli/internal/pokeapi"
+)
+
+type Pokedex struct {
+	entries map[string]pokeapi.PokemonInfo
+	mux     *sync.Mutex
+}
+
+func chanceCatch(baseXP int) bool {
+	// artificial limits on the potential min and max baseXP value
+	var max float32 = 800.0
+	var min float32 = 20.0
+
+	// min-max normalization formula
+	var probability float32 = 1.0 - ((float32(baseXP) - min) / (max - min))
+
+	// the higher the xp the more likely to return true
+	return rand.Float32() <= probability
+}
+
+func NewPokedex() *Pokedex {
+	return &Pokedex{
+		entries: make(map[string]pokeapi.PokemonInfo),
+		mux:     &sync.Mutex{},
+	}
+}
+
+// adds pokemon to the pokedex for finding later
+func (p *Pokedex) Add(name string, pokemonStruct pokeapi.PokemonInfo) {
+	p.mux.Lock()
+	defer p.mux.Unlock()
+
+	p.entries[name] = pokemonStruct
+	return
+}
+
+// finds pokemon in the Pokedex struct and if found returns the info struct
+func (p *Pokedex) Get(name string) (pokeapi.PokemonInfo, bool) {
+	p.mux.Lock()
+	defer p.mux.Unlock()
+
+	pokemon, ok := p.entries[name]
+	if !ok {
+		fmt.Printf("%s is not in the Pokedex.\nYou need to catch them first!\n", name)
+		return pokeapi.PokemonInfo{}, false
+	}
+
+	fmt.Printf("%s was found in the Pokedex.\n", name)
+	return pokemon, true
+}
+
+// will perform an attempt to 'catch' a pokemon and
+// add to the pokedex
+func AttemptCatch(pokemon pokeapi.PokemonInfo) bool {
+	baseXP := pokemon.BaseExperience
+	wasCaught := chanceCatch(baseXP)
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
+	time.Sleep(time.Second)
+
+	if wasCaught {
+		fmt.Printf("%s was caught!\n", pokemon.Name)
+		return true
+	}
+
+	fmt.Printf("%s escaped!\n", pokemon.Name)
+	return false
+}
