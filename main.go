@@ -101,6 +101,11 @@ func requestThroughCache(URL string, cfg *config) ([]byte, error) {
 // Command Functions
 // =================
 func commandCatch(cfg *config, name string) error {
+	if name == "" {
+		fmt.Println("Please provide the name of a Pokemon to catch.")
+		return nil
+	}
+
 	URL := pokeapi.PokemonInfoURL + name + "/"
 
 	data, err := requestThroughCache(URL, cfg)
@@ -134,6 +139,11 @@ func commandExit(cfg *config, optional string) error {
 }
 
 func commandExplore(cfg *config, name string) error {
+	if name == "" {
+		fmt.Println("Please provide the name of an area to explore.")
+		return nil
+	}
+
 	// creating URL
 	URL := pokeapi.LocationAreaInfoURL + name + "/"
 
@@ -170,6 +180,32 @@ func commandHelp(cfg *config, optional string) error {
 }
 
 func commandInspect(cfg *config, name string) error {
+	if name == "" {
+		fmt.Println("Please provide the name of a Pokemon you have caught.")
+		return nil
+	}
+
+	pokemon, wasCaught := cfg.pokedex.Get(name)
+	if !wasCaught {
+		return nil
+	}
+
+	statList := pokemon.StatList
+	typeList := pokemon.TypeList
+
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+
+	fmt.Printf("Stats:\n")
+	for _, stat := range statList {
+		fmt.Printf("  -%s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+
+	fmt.Printf("Types:\n")
+	for _, pType := range typeList {
+		fmt.Printf("  -%s\n", pType.PType.Name)
+	}
 
 	return nil
 }
@@ -263,7 +299,7 @@ func main() {
 	scanner := bufio.NewScanner(os.Stdin)
 
 	for {
-		fmt.Print("Pokedex > ") // prompt
+		fmt.Print("\nPokedex > ") // prompt
 
 		if ok := scanner.Scan(); !ok {
 			continue // no text provided
