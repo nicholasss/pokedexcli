@@ -57,6 +57,12 @@ func (p *Pokedex) Get(name string) (pokeapi.PokemonInfo, bool) {
 	return pokemon, true
 }
 
+// returns a list of all Pokemon in the Pokemon entries
+func (p *Pokedex) GetAll() ([]string, bool) {
+
+	return []string{}, false
+}
+
 // will perform an attempt to 'catch' a pokemon and
 // add to the pokedex
 func AttemptCatch(pokemon pokeapi.PokemonInfo) bool {

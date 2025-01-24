@@ -290,6 +290,7 @@ func commandMapB(cfg *config, optional string) error {
 }
 
 func commandPokedex(cfg *config, optional string) error {
+	pokemonList, emptyList := cfg.pokedex.GetAlL()
 
 	return nil
 }
