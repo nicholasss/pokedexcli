@@ -124,9 +124,8 @@ func commandCatch(cfg *config, name string) error {
 		return nil
 	}
 
-	// add to pokedex
+	// Add to pokedex if caught
 	cfg.pokedex.Add(name, pokemon)
-	// fmt.Printf(" **** added %s to pokedex!\n", name)
 
 	return nil
 }

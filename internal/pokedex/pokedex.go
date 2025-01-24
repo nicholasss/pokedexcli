@@ -53,7 +53,7 @@ func (p *Pokedex) Get(name string) (pokeapi.PokemonInfo, bool) {
 		return pokeapi.PokemonInfo{}, false
 	}
 
-	fmt.Printf("%s was found in the Pokedex.\n", name)
+	// fmt.Printf("%s was found in the Pokedex.\n", name)
 	return pokemon, true
 }
 

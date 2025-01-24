@@ -44,9 +44,19 @@ type LocationInfo struct {
 type PokemonInfo struct {
 	ID             int    `json:"id"`
 	Name           string `json:"name"`
+	Height         int    `json:"height"`
+	Weight         int    `json:"weight"`
 	BaseExperience int    `json:"base_experience"`
-	TypeList       []struct {
-		Type string `json:"name"`
+	Stats          []struct {
+		BaseStat int `json:"base_stat"`
+		Stat     struct {
+			Name string `json:"name"`
+		} `json:"stat"`
+	} `json:"stats"`
+	TypeList []struct {
+		Type struct {
+			Name string `json:"name"`
+		} `json:"type"`
 	} `json:"types"`
 }
 
