@@ -79,15 +79,6 @@ func cleanInput(text string) []string {
 	return words
 }
 
-func commandHelp(cfg *config, optional string) error {
-	fmt.Printf("Welcome to the Pokedex!\nUsage:\n\n")
-	for _, ci := range validCommands {
-		fmt.Printf("%s: %s\n", ci.name, ci.description)
-	}
-
-	return nil
-}
-
 func requestThroughCache(URL string, cfg *config) ([]byte, error) {
 	reqData, inCache := cfg.cache.Get(URL)
 	// fmt.Println(" %%% Looking at:", URL)
@@ -159,6 +150,15 @@ func commandExplore(cfg *config, name string) error {
 	// print out list of pokemon here
 	for _, pokemon := range locationInfo.PokemonList {
 		fmt.Println(pokemon.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func commandHelp(cfg *config, optional string) error {
+	fmt.Printf("Welcome to the Pokedex!\nUsage:\n\n")
+	for _, ci := range validCommands {
+		fmt.Printf("%s: %s\n", ci.name, ci.description)
 	}
 
 	return nil
