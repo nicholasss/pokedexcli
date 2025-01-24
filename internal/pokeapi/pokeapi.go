@@ -1,21 +1,24 @@
 package pokeapi
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
 
+// =========
+// Constants
+// =========
 const LocationAreaURL = "https://pokeapi.co/api/v2/location-area"
 const LocationAreaListURL = LocationAreaURL + "?offset=0&limit=20"
 const LocationAreaInfoURL = LocationAreaURL + "/" // is this needed? who knows
 
 const PokemonInfoURL = "https://pokeapi.co/api/v2/pokemon/"
 
-// location area
-// field names need to be public with upper case for json package
-//
-// https://pokeapi.co/api/v2/location-area/
+// =====
+// Types
+// =====
 type LocationList struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
@@ -46,6 +49,44 @@ type PokemonInfo struct {
 		Type string `json:"name"`
 	} `json:"types"`
 }
+
+// ===================
+// Unmarshal Functions
+// ===================
+
+// Unmarshals data to a PokemonInfo struct.
+func UnmarshalPokemonInfo(data []byte) (PokemonInfo, error) {
+	var pokemonInfo PokemonInfo
+	if err := json.Unmarshal(data, &pokemonInfo); err != nil {
+		return PokemonInfo{}, fmt.Errorf("unable to unmarshal json request: %w", err)
+	}
+
+	return pokemonInfo, nil
+}
+
+// Unmarshals data to a LocationInfo struct.
+func UnmarshalLocationInfo(data []byte) (LocationInfo, error) {
+	var locationInfo LocationInfo
+	if err := json.Unmarshal(data, &locationInfo); err != nil {
+		return LocationInfo{}, fmt.Errorf("unable to unmarshal json request: %w", err)
+	}
+
+	return locationInfo, nil
+}
+
+// Unmarshals data to a LocationList struct.
+func UnmarshalLocationList(data []byte) (LocationList, error) {
+	var locationList LocationList
+	if err := json.Unmarshal(data, &locationList); err != nil {
+		return LocationList{}, fmt.Errorf("unable to unmarshal json request: %w", err)
+	}
+
+	return locationList, nil
+}
+
+// =================
+// Network Functions
+// =================
 
 // provides the body of from a get request
 func RequestGETBody(URL string) ([]byte, error) {

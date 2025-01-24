@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -115,7 +114,7 @@ func commandCatch(cfg *config, name string) error {
 
 	cfg.cache.Add(URL, data)
 
-	pokemon, err := unmarshalPokemonInfo(data)
+	pokemon, err := pokeapi.UnmarshalPokemonInfo(data)
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal pokemon info: %w", err)
 	}
@@ -153,7 +152,7 @@ func commandExplore(cfg *config, name string) error {
 	// adding back to cache
 	cfg.cache.Add(URL, data)
 
-	locationInfo, err := unmarshalLocationInfo(data)
+	locationInfo, err := pokeapi.UnmarshalLocationInfo(data)
 	if err != nil {
 		return err
 	}
@@ -164,33 +163,6 @@ func commandExplore(cfg *config, name string) error {
 	}
 
 	return nil
-}
-
-func unmarshalPokemonInfo(data []byte) (pokeapi.PokemonInfo, error) {
-	var pokemonInfo pokeapi.PokemonInfo
-	if err := json.Unmarshal(data, &pokemonInfo); err != nil {
-		return pokeapi.PokemonInfo{}, fmt.Errorf("unable to unmarshal json request: %w", err)
-	}
-
-	return pokemonInfo, nil
-}
-
-func unmarshalLocationInfo(data []byte) (pokeapi.LocationInfo, error) {
-	var locationInfo pokeapi.LocationInfo
-	if err := json.Unmarshal(data, &locationInfo); err != nil {
-		return pokeapi.LocationInfo{}, fmt.Errorf("unable to unmarshal json request: %w", err)
-	}
-
-	return locationInfo, nil
-}
-
-func unmarshalLocationList(data []byte) (pokeapi.LocationList, error) {
-	var locationList pokeapi.LocationList
-	if err := json.Unmarshal(data, &locationList); err != nil {
-		return pokeapi.LocationList{}, fmt.Errorf("unable to unmarshal json request: %w", err)
-	}
-
-	return locationList, nil
 }
 
 func commandMap(cfg *config, optional string) error {
@@ -211,7 +183,7 @@ func commandMap(cfg *config, optional string) error {
 	// add to cache
 	cfg.cache.Add(URL, body)
 
-	locationList, err := unmarshalLocationList(body)
+	locationList, err := pokeapi.UnmarshalLocationList(body)
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
@@ -248,7 +220,7 @@ func commandMapB(cfg *config, optional string) error {
 	// add to cache
 	cfg.cache.Add(URL, body)
 
-	locationList, err := unmarshalLocationList(body)
+	locationList, err := pokeapi.UnmarshalLocationList(body)
 	if err != nil {
 		return fmt.Errorf("unable to unmarshal json request: %w", err)
 	}
