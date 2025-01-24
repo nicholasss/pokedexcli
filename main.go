@@ -10,6 +10,7 @@ import (
 	pokeapi "github.com/nicholasss/pokedexcli/internal/pokeapi"
 	pokecache "github.com/nicholasss/pokedexcli/internal/pokecache"
 	pokedex "github.com/nicholasss/pokedexcli/internal/pokedex"
+	savestate "github.com/nicholasss/pokedexcli/internal/savestate"
 )
 
 // =====
@@ -22,10 +23,11 @@ type cliCommand struct {
 }
 
 type config struct {
-	cache   *pokecache.Cache
-	mapNURL string
-	mapPURL string
-	pokedex *pokedex.Pokedex
+	cache    *pokecache.Cache
+	mapNURL  string
+	mapPURL  string
+	pokedex  *pokedex.Pokedex
+	savePath string
 }
 
 // =====================
@@ -226,6 +228,13 @@ func commandInspect(cfg *config, name string) error {
 }
 
 func commandLoad(cfg *config, optional string) error {
+	loadedPokedex, err := savestate.LoadPokedex(cfg.savePath)
+	if err != nil {
+		return fmt.Errorf("unable to load save: %w", err)
+	}
+
+	cfg.pokedex = loadedPokedex
+
 	return nil
 }
 
@@ -319,6 +328,10 @@ func commandPokedex(cfg *config, optional string) error {
 }
 
 func commandSave(cfg *config, optional string) error {
+	err := savestate.SavePokedex(cfg.savePath, cfg.pokedex)
+	if err != nil {
+		return fmt.Errorf("unable to save pokedex: %w", err)
+	}
 
 	return nil
 }
@@ -329,13 +342,15 @@ func commandSave(cfg *config, optional string) error {
 func main() {
 
 	const interval = (10 * time.Minute)
+	const saveFilePath = "./save.json"
 
 	// local variables struct
 	cfg := &config{
-		cache:   pokecache.NewCache(interval),
-		mapNURL: "null",
-		mapPURL: "null",
-		pokedex: pokedex.NewPokedex(),
+		cache:    pokecache.NewCache(interval),
+		mapNURL:  "null",
+		mapPURL:  "null",
+		pokedex:  pokedex.NewPokedex(),
+		savePath: saveFilePath,
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)

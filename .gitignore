@@ -4,6 +4,9 @@ pokedexcli
 # logs
 repl.log
 
+# saves
+save.json
+
 # https://www.google.com/robots.txt
 # no idea if thats copyright or otherwise able to be copied
 googlerobots.txt

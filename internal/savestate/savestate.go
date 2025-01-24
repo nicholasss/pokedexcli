@@ -19,10 +19,15 @@ type SaveFile struct {
 
 var mux *sync.Mutex
 
+func init() {
+	mux = &sync.Mutex{}
+}
+
 func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 	_, namesInList := pokedex.GetAll()
 	if !namesInList {
-		fmt.Println("There are no Pokemon to save!")
+		// TODO: ensure that calling function can check whether it saved or not
+		// fmt.Println("There are no Pokemon to save!")
 		return nil
 	}
 
@@ -35,20 +40,30 @@ func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 		PokedexData: pokedex,
 	}
 
+	fmt.Printf("%+v\n", pokedex)
+
 	file, err := os.Create(path)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	data, err := json.MarshalIndent(newSave, "", "\t")
+	data, err := json.Marshal(newSave)
 	if err != nil {
 		return err
 	}
+
+	fmt.Println(data)
+
 	dataReader := bytes.NewReader(data)
 
 	_, err = io.Copy(file, dataReader)
-	return err
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Saved Pokedex successfully.")
+	return nil
 }
 
 func LoadPokedex(path string) (*pokedex.Pokedex, error) {
@@ -64,11 +79,12 @@ func LoadPokedex(path string) (*pokedex.Pokedex, error) {
 	}
 	defer file.Close()
 
-	loadedPokedex := &pokedex.Pokedex{}
+	loadedPokedex := pokedex.NewPokedex()
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&loadedPokedex); err != nil {
 		return &pokedex.Pokedex{}, nil
 	}
 
+	fmt.Println("Loaded Pokedex succsesfully.")
 	return loadedPokedex, nil
 }
