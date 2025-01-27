@@ -11,7 +11,7 @@ import (
 
 type Pokedex struct {
 	entries map[string]pokeapi.PokemonInfo
-	mux     *sync.Mutex
+	mux     sync.Mutex
 }
 
 func chanceCatch(baseXP int) bool {
@@ -29,7 +29,7 @@ func chanceCatch(baseXP int) bool {
 func NewPokedex() *Pokedex {
 	return &Pokedex{
 		entries: make(map[string]pokeapi.PokemonInfo),
-		mux:     &sync.Mutex{},
+		mux:     sync.Mutex{},
 	}
 }
 
