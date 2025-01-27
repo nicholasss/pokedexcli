@@ -18,10 +18,10 @@ type SaveFile struct {
 	PokedexList []string  `json:"pokedex_list"`
 }
 
-var mux *sync.Mutex
+var mux sync.Mutex
 
 func init() {
-	mux = &sync.Mutex{}
+	mux = sync.Mutex{}
 }
 
 func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
@@ -39,8 +39,6 @@ func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 		PokedexList: pokedexList,
 	}
 
-	fmt.Printf("%v\n", pokedexList)
-
 	file, err := os.Create(path)
 	if err != nil {
 		return err
@@ -51,8 +49,6 @@ func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("Data as string:", string(data))
 
 	dataReader := bytes.NewReader(data)
 

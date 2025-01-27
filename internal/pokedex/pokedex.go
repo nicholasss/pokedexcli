@@ -82,6 +82,7 @@ func (p *Pokedex) Get(name string) (pokeapi.PokemonInfo, bool) {
 }
 
 // returns a list of all Pokemon in the Pokemon entries
+// this is used for both listing out caught pokemon and saving
 func (p *Pokedex) GetAll() ([]string, bool) {
 	p.mux.Lock()
 	defer p.mux.Unlock()
