@@ -42,6 +42,30 @@ func (p *Pokedex) Add(name string, pokemonStruct pokeapi.PokemonInfo) {
 	return
 }
 
+// adds list of pokemon to the pokedex, for loading from save
+func (p *Pokedex) AddList(nameList []string) bool {
+	p.mux.Lock()
+	defer p.mux.Unlock()
+
+	for _, name := range nameList {
+		nameURL := pokeapi.PokemonInfoURL + name
+		pokemonData, err := pokeapi.RequestGETBody(nameURL)
+		if err != nil {
+			fmt.Println("unable to request data when loading:", err)
+			return false
+		}
+
+		pokemonStruct, err := pokeapi.UnmarshalPokemonInfo(pokemonData)
+		if err != nil {
+			fmt.Println("unable to unmarshal data when loading:", err)
+			return false
+		}
+		p.entries[name] = pokemonStruct
+	}
+
+	return true
+}
+
 // finds pokemon in the Pokedex struct and if found returns the info struct
 func (p *Pokedex) Get(name string) (pokeapi.PokemonInfo, bool) {
 	p.mux.Lock()

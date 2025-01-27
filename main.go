@@ -228,12 +228,10 @@ func commandInspect(cfg *config, name string) error {
 }
 
 func commandLoad(cfg *config, optional string) error {
-	loadedPokedex, err := savestate.LoadPokedex(cfg.savePath)
+	err := savestate.LoadPokedex(cfg.savePath, cfg.pokedex)
 	if err != nil {
 		return fmt.Errorf("unable to load save: %w", err)
 	}
-
-	cfg.pokedex = loadedPokedex
 
 	return nil
 }

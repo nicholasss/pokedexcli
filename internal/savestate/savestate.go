@@ -3,6 +3,7 @@ package savestate
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -13,8 +14,8 @@ import (
 )
 
 type SaveFile struct {
-	SaveTime    time.Time        `json:"save_time"`
-	PokedexData *pokedex.Pokedex `json:"pokedex_data"`
+	SaveTime    time.Time `json:"save_time"`
+	PokedexList []string  `json:"pokedex_list"`
 }
 
 var mux *sync.Mutex
@@ -24,11 +25,9 @@ func init() {
 }
 
 func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
-	_, namesInList := pokedex.GetAll()
-	if !namesInList {
-		// TODO: ensure that calling function can check whether it saved or not
-		// fmt.Println("There are no Pokemon to save!")
-		return nil
+	pokedexList, ok := pokedex.GetAll()
+	if !ok {
+		return errors.New("unable to get list from pokedex")
 	}
 
 	// only lock if there is anything to actually save
@@ -37,10 +36,10 @@ func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 
 	newSave := SaveFile{
 		SaveTime:    time.Now(),
-		PokedexData: pokedex,
+		PokedexList: pokedexList,
 	}
 
-	fmt.Printf("%+v\n", pokedex)
+	fmt.Printf("%v\n", pokedexList)
 
 	file, err := os.Create(path)
 	if err != nil {
@@ -53,7 +52,7 @@ func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 		return err
 	}
 
-	fmt.Println(data)
+	fmt.Println("Data as string:", string(data))
 
 	dataReader := bytes.NewReader(data)
 
@@ -66,25 +65,31 @@ func SavePokedex(path string, pokedex *pokedex.Pokedex) error {
 	return nil
 }
 
-func LoadPokedex(path string) (*pokedex.Pokedex, error) {
+func LoadPokedex(path string, pokedex *pokedex.Pokedex) error {
 	mux.Lock()
 	defer mux.Unlock()
 
 	file, err := os.Open(path)
 	if os.IsNotExist(err) {
 		fmt.Println("There is no save file to load.")
-		return &pokedex.Pokedex{}, err
+		return err
 	} else if err != nil {
-		return &pokedex.Pokedex{}, err
+		return err
 	}
 	defer file.Close()
 
-	loadedPokedex := pokedex.NewPokedex()
+	var oldSave SaveFile
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&loadedPokedex); err != nil {
-		return &pokedex.Pokedex{}, nil
+	if err := decoder.Decode(&oldSave); err != nil {
+		return err
 	}
 
-	fmt.Println("Loaded Pokedex succsesfully.")
-	return loadedPokedex, nil
+	ok := pokedex.AddList(oldSave.PokedexList)
+	if !ok {
+		return errors.New("unable to add list to pokedex:")
+	}
+
+	time := oldSave.SaveTime
+	fmt.Println("Loaded save file from:", time.Local().String())
+	return nil
 }
